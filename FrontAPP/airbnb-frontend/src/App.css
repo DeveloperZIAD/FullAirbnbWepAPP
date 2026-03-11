@@ -1,0 +1,38 @@
+/* App.css */
+
+/* تنظيف الصفحة والمساحات */
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #fff;
+}
+
+/* عرض المحتوى بكامل العرض المتاح مع هوامش بسيطة */
+.home-container {
+  width: 100%;
+  padding: 0 4% !important;
+}
+
+/* إخفاء أي بقايا لأسهم سويبر في حال وجودها */
+.swiper-button-next,
+.swiper-button-prev {
+  display: none !important;
+}
+
+/* تحسين شكل نقاط الترقيم لتكون بيضاء وواضحة */
+.swiper-pagination-bullet {
+  background: white !important;
+  opacity: 0.7 !important;
+}
+.swiper-pagination-bullet-active {
+  opacity: 1 !important;
+}
+/* إخفاء شريط التمرير لشريط التصنيفات */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}

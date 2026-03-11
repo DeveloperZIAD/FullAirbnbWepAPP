@@ -1,0 +1,59 @@
+# --- C# / .NET Backend ---
+[Bb]in/
+[Oo]bj/
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.dbmdl
+*.jfm
+TestResults/
+*.Publish.xml
+*.azurePubxml
+**/bin/
+**/obj/
+**/out/
+
+# --- ملفات الإعدادات الحساسة (مهم جداً للـ Production) ---
+# تجاهل ملفات الإعدادات المحلية التي قد تحتوي على مفاتيح API
+**/Properties/launchSettings.json
+appsettings.json
+!appsettings.Example.json
+.env*
+Configurations.xml
+*.pem
+*.key
+
+# --- Node.js / Frontend ---
+node_modules/
+dist/
+build/
+.next/
+.nuxt/
+.output/
+.npm/
+.eslintcache
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# --- Docker ---
+*.img
+*.tar
+docker-compose.override.yml
+
+# --- بيئة العمل و IDE ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.bak
+*.tmp
+
+# --- قواعد البيانات المحلية ---
+*.mdf
+*.ldf
+*.sqlite
+*.sqlite-journal

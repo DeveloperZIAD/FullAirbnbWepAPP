@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body,
+:root {
+  height: 100%;
+  /* خط Airbnb قريب جداً من الـ Circular */
+  font-family: "Inter", sans-serif;
+}
+
+/* تخفيف حدة الـ Border الافتراضي */
+@layer base {
+  border-neutral-200 {
+    @apply border-[#ebebeb];
+  }
+}
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}

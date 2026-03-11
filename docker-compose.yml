@@ -1,0 +1,62 @@
+version: "3.8"
+
+services:
+  # 1. قاعدة البيانات (Azure SQL Edge)
+  db:
+    image: mcr.microsoft.com/azure-sql-edge:latest
+    container_name: airbnb_db
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=YourStrongPassword123!
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssql_data:/var/opt/mssql
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "/opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P YourStrongPassword123! -Q 'SELECT 1'",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - airbnb-network
+
+  # 2. الـ Backend (API)
+  backend:
+    build:
+      context: ./BackAPP
+      dockerfile: Dockerfile
+    image: my-airbnb-api:latest
+    container_name: airbnb_api
+    depends_on:
+      - db
+    environment:
+      - DB_CONNECTION_STRING=Server=db,1433;Database=AirbnbClone;User Id=sa;Password=YourStrongPassword123!;TrustServerCertificate=True;
+    ports:
+      - "5000:8080"
+    networks:
+      - airbnb-network
+
+  # 3. الـ Frontend (React/Nginx)
+  frontend:
+    build:
+      context: ./FrontAPP/airbnb-frontend
+      dockerfile: Dockerfile
+    image: my-airbnb-web:latest
+    container_name: airbnb_web
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - airbnb-network
+
+networks:
+  airbnb-network:
+    driver: bridge
+
+volumes:
+  mssql_data: # تعريف الحجم الدائم للبيانات
