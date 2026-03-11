@@ -44,6 +44,6 @@ jobs:
           push: true
           tags: ghcr.io/developerziad/airbnb-frontend:latest
           build-args: |
-            REACT_APP_API_URL=https://[YOUR_RAILWAY_DOMAIN]/api
+            REACT_APP_API_URL=https://airbnb-backend-production-7ed2.up.railway.app/api
           cache-from: type=gha
           cache-to: type=gha,mode=max

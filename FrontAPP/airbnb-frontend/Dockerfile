@@ -1,7 +1,8 @@
 # --- المرحلة الأولى: البناء (Build Stage) ---
 FROM node:18-alpine AS build
 WORKDIR /app
-
+ARG REACT_APP_API_URL
+ENV REACT_APP_API_URL=$REACT_APP_API_URL
 # نسخ ملفات الـ package و تثبيت المكتبات (لتحسين الـ Cache)
 COPY package*.json ./
 RUN npm install
