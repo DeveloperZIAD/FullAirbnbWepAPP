@@ -28,7 +28,7 @@ jobs:
       - name: Build and Push Backend
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ./BackAPP
           file: ./BackAPP/Dockerfile
           push: true
           tags: ghcr.io/developerziad/airbnb-backend:latest

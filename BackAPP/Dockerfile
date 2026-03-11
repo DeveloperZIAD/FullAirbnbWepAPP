@@ -4,19 +4,20 @@ WORKDIR /app
 EXPOSE 8080
 
 # المرحلة الثانية: البناء (Build)
+# المرحلة الثانية: البناء
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# نسخ ملفات المشروع الفردية (باستخدام الاقتباس المزدوج حول المسارات)
-COPY ["Business Logic Layer/Business Logic Layer.csproj", "Business Logic Layer/"]
-COPY ["Data Access Layer/Data Access Layer.csproj", "Data Access Layer/"]
-COPY ["DataGenerator/DataGenerator.csproj", "DataGenerator/"]
-COPY ["Presentation Layer (Web API)/Presentation Layer (Web API).csproj", "Presentation Layer (Web API)/"]
+# استخدام علامة * للبحث عن ملفات الـ csproj في المجلدات الفرعية
+COPY ["Business Logic Layer/*.csproj", "Business Logic Layer/"]
+COPY ["Data Access Layer/*.csproj", "Data Access Layer/"]
+COPY ["DataGenerator/*.csproj", "DataGenerator/"]
+COPY ["Presentation Layer (Web API)/*.csproj", "Presentation Layer (Web API)/"]
 
-# استعادة الحزم
+# استعادة الحزم (هنا نستخدم المسار الصحيح)
 RUN dotnet restore "Presentation Layer (Web API)/Presentation Layer (Web API).csproj"
 
-# نسخ كامل السورس كود
+# نسخ باقي الكود
 COPY . .
 
 # البناء
