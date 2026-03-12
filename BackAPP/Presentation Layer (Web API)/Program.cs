@@ -133,7 +133,7 @@ if (app.Environment.IsProduction())
 app.UseCors("StrictCors");
 
 // 3. تفعيل الـ Middleware الأمنية بعد CORS
-app.UseMiddleware<SecurityHeadersMiddleware>();
+//app.UseMiddleware<SecurityHeadersMiddleware>();
 
 // 4. الترتيب القياسي لبقية الخدمات
 app.UseRouting();
