@@ -21,31 +21,41 @@ const authService = {
     return response.data;
   },
 
-  login: async (credentials) => {
-    try {
-      const response = await api.post("/Auth/login", credentials);
-      const data = response.data;
+    login: async (credentials) => {
+        try {
+            const response = await api.post("/Auth/login", credentials);
+            const data = response.data;
 
-      const token = data.token || data.accessToken;
-      const refreshToken = data.refreshToken; // تأكد من جلب الـ Refresh Token
+            const token = data.token || data.accessToken;
+            const refreshToken = data.refreshToken;
 
-      if (token) {
-        localStorage.setItem("accessToken", token);
-        if (refreshToken) {
-          localStorage.setItem("refreshToken", refreshToken); // حفظ الـ Refresh Token
+            if (token) {
+                localStorage.setItem("accessToken", token);
+                if (refreshToken) {
+                    localStorage.setItem("refreshToken", refreshToken);
+                }
+
+                // هنا التعديل: نضمن دمج الـ ID في كائن المستخدم
+                // الباك-إند غالباً يرسل الـ ID إما داخل data.user أو كـ data.userId
+                const userId = data.userId || (data.user && data.user.id);
+
+                const userToSave = data.user || {
+                    email: credentials.email,
+                    fullName: data.fullName || "User",
+                };
+
+                // دمج الـ ID في كائن المستخدم المحفوظ
+                if (userId) {
+                    userToSave.id = userId;
+                }
+
+                localStorage.setItem("user", JSON.stringify(userToSave));
+            }
+            return response.data;
+        } catch (error) {
+            throw error;
         }
-
-        const userToSave = data.user || {
-          email: credentials.email,
-          fullName: data.fullName || "User",
-        };
-        localStorage.setItem("user", JSON.stringify(userToSave));
-      }
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
-  },
+    },
   getUserperID: async (userId) => {
     try {
       const response = await api.get(`/Account/users/${userId}`);

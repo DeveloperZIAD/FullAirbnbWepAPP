@@ -100,6 +100,8 @@ builder.Services.AddRateLimiter(options =>
     });
 });
 
+// show swagger only in development
+
 
 
 // chathub
@@ -120,6 +122,12 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 
 
 var app = builder.Build();
+
+// show swagger only in development
+
+    //app.UseSwagger();
+    //app.UseSwaggerUI();
+
 
 app.UseForwardedHeaders(); 
 

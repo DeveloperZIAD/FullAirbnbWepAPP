@@ -21,7 +21,6 @@ public class BookingsController : ControllerBase
     }
 
     [HttpPost("create")]
-    [AllowAnonymous]
     [EnableRateLimiting("fixed")]
     public IActionResult CreateBooking([FromBody] BookingCreateDto dto)
     {
