@@ -21,13 +21,22 @@ namespace Business_Logic_Layer.Service.Admin
 
         public IEnumerable<object> GetAllListingsDetailed()
         {
-            // 1. دلوقتي تقدر تعمل Include للـ Location وهتشتغل "نار" لأن EF عرف الـ Key خلاص
-            var listings = _unitOfWork.Listings.GetAll(l => l.Host, l => l.Category, l => l.Location).ToList();
+            // استخدام GetQueryable لجلب البيانات في استعلام واحد متصل
+            // تأكد أن الـ Repository يدعم Includes داخل IQueryable
+            var query = _unitOfWork.Listings.GetQueryable(l => l.Host, l => l.Category, l => l.Location);
+
+            // جلب البيانات مع الربط (Join) بدلاً من استدعاء قاعدة البيانات داخل الحلقة
+            var listings = query.ToList();
+
+            // جلب كل المستخدمين وجهات الاتصال مرة واحدة في مصفوفة (لتقليل الضغط)
+            var allUsers = _unitOfWork.Users.GetAll().ToList();
+            var allContacts = _unitOfWork.Contacts.GetAll().ToList();
 
             return listings.Select(l =>
             {
-                var user = _unitOfWork.Users.GetById(l.Host.UserId);
-                var contact = _unitOfWork.Contacts.GetAll().FirstOrDefault(c => c.UserId == l.Host.UserId);
+                // البحث في الذاكرة (Memory) وليس في قاعدة البيانات
+                var user = allUsers.FirstOrDefault(u => u.Id == l.Host.UserId);
+                var contact = allContacts.FirstOrDefault(c => c.UserId == l.Host.UserId);
 
                 return new
                 {
@@ -46,7 +55,6 @@ namespace Business_Logic_Layer.Service.Admin
                         Email = contact?.PrimaryEmail ?? "No Email"
                     },
 
-                    // ✅ دلوقتي l.Location مستحيل ترجع Null طالما ليها سجل
                     Location = l.Location != null ? new
                     {
                         l.Location.City,
@@ -58,34 +66,38 @@ namespace Business_Logic_Layer.Service.Admin
                 };
             }).ToList();
         }
+
+
         public IEnumerable<object> GetAllReservationsDetailed()
         {
-            // 1. جلب الحجوزات مع العقار والمضيف المرتبط به
-            var bookings = _unitOfWork.Bookings.GetAll(
+            // 1. جلب الحجوزات مع العلاقات الأساسية في استعلام واحد
+            var query = _unitOfWork.Bookings.GetQueryable(
                 b => b.Listing,
                 b => b.Listing.Host
-            ).ToList();
+            );
+
+            var bookings = query.ToList();
+
+            // 2. جلب كافة البيانات المطلوبة للمستخدمين وجهات الاتصال دفعة واحدة
+            // هذا يقلل الاستعلامات من 1 + (4 * N) إلى 3 استعلامات فقط
+            var allUsers = _unitOfWork.Users.GetAll().ToList();
+            var allContacts = _unitOfWork.Contacts.GetAll().ToList();
 
             return bookings.Select(b =>
             {
-                // --- جلب بيانات الضيف (الذي قام بالحجز) ---
-                // بما أن b.GuestId هو معرف المستخدم الذي حجز
-                var guestUser = _unitOfWork.Users.GetById(b.GuestId);
-                var guestContact = _unitOfWork.Contacts.GetAll()
-                    .FirstOrDefault(c => c.UserId == b.GuestId);
+                // 3. البحث في الذاكرة (RAM) بدلاً من استعلام قاعدة البيانات
+                var guestUser = allUsers.FirstOrDefault(u => u.Id == b.GuestId);
+                var guestContact = allContacts.FirstOrDefault(c => c.UserId == b.GuestId);
 
-                // --- جلب بيانات المضيف (صاحب العقار) ---
-                // نستخدم UserId الموجود داخل كائن الـ Host المرتبط بالعقار
-                var hostUser = _unitOfWork.Users.GetById(b.Listing.Host.UserId);
-                var hostContact = _unitOfWork.Contacts.GetAll()
-                    .FirstOrDefault(c => c.UserId == b.Listing.Host.UserId);
+                var hostUserId = b.Listing?.Host?.UserId;
+                var hostUser = allUsers.FirstOrDefault(u => u.Id == hostUserId);
+                var hostContact = allContacts.FirstOrDefault(c => c.UserId == hostUserId);
 
                 return new
                 {
                     Id = b.Id,
                     ListingTitle = b.Listing?.Title ?? "Deleted Listing",
 
-                    // تفاصيل الضيف
                     GuestDetails = new
                     {
                         UserId = b.GuestId,
@@ -93,11 +105,10 @@ namespace Business_Logic_Layer.Service.Admin
                         Email = guestContact?.PrimaryEmail ?? "No Email"
                     },
 
-                    // تفاصيل المضيف
                     HostDetails = new
                     {
-                        HostId = b.Listing.HostId,
-                        UserId = b.Listing.Host.UserId,
+                        HostId = b.Listing?.HostId,
+                        UserId = hostUserId,
                         FullName = hostUser?.FullName ?? "Unknown Host",
                         Email = hostContact?.PrimaryEmail ?? "No Email"
                     },
