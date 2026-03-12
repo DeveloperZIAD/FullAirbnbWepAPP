@@ -5,14 +5,21 @@ const authService = {
   register: async (userData) => {
     const response = await api.post("/Account/register/guest", userData);
 
-    // إذا نجح التسجيل (الباك اند رجع userId)
+    // إذا نجح التسجيل ورجع الباك-إند الـ userId
     if (response.data && response.data.userId) {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      console.log(
-        "Registration successful, proceeding to login...",
-        userData.email,
-        userData.password,
-      );
+      // بناء كائن المستخدم المتكامل
+      const userToSave = {
+        id: response.data.userId,
+        email: userData.email,
+        fullName: userData.fullName || "User",
+      };
+
+      // حفظ المستخدم في localStorage مباشرة هنا
+      localStorage.setItem("user", JSON.stringify(userToSave));
+
+      // console.log("Registration successful, user saved to storage.");
+
+      // ثم نقوم بتسجيل الدخول للحصول على التوكن
       return await authService.login({
         email: userData.email,
         password: userData.password,
@@ -21,41 +28,41 @@ const authService = {
     return response.data;
   },
 
-    login: async (credentials) => {
-        try {
-            const response = await api.post("/Auth/login", credentials);
-            const data = response.data;
+  login: async (credentials) => {
+    try {
+      const response = await api.post("/Auth/login", credentials);
+      const data = response.data;
 
-            const token = data.token || data.accessToken;
-            const refreshToken = data.refreshToken;
+      const token = data.token || data.accessToken;
+      const refreshToken = data.refreshToken;
 
-            if (token) {
-                localStorage.setItem("accessToken", token);
-                if (refreshToken) {
-                    localStorage.setItem("refreshToken", refreshToken);
-                }
-
-                // هنا التعديل: نضمن دمج الـ ID في كائن المستخدم
-                // الباك-إند غالباً يرسل الـ ID إما داخل data.user أو كـ data.userId
-                const userId = data.userId || (data.user && data.user.id);
-
-                const userToSave = data.user || {
-                    email: credentials.email,
-                    fullName: data.fullName || "User",
-                };
-
-                // دمج الـ ID في كائن المستخدم المحفوظ
-                if (userId) {
-                    userToSave.id = userId;
-                }
-
-                localStorage.setItem("user", JSON.stringify(userToSave));
-            }
-            return response.data;
-        } catch (error) {
-            throw error;
+      if (token) {
+        localStorage.setItem("accessToken", token);
+        if (refreshToken) {
+          localStorage.setItem("refreshToken", refreshToken);
         }
-    },
+
+        // هنا التعديل: نضمن دمج الـ ID في كائن المستخدم
+        // الباك-إند غالباً يرسل الـ ID إما داخل data.user أو كـ data.userId
+        const userId = data.userId || (data.user && data.user.id);
+
+        const userToSave = data.user || {
+          email: credentials.email,
+          fullName: data.fullName || "User",
+        };
+
+        // دمج الـ ID في كائن المستخدم المحفوظ
+        if (userId) {
+          userToSave.id = userId;
+        }
+
+        localStorage.setItem("user", JSON.stringify(userToSave));
+      }
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
   getUserperID: async (userId) => {
     try {
       const response = await api.get(`/Account/users/${userId}`);
