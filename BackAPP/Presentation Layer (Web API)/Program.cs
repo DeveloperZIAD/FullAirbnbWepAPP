@@ -74,7 +74,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("StrictCors", policy =>
     {
-        policy.WithOrigins(allowedOrigin.Split(',')) // يدعم إدخال أكثر من رابط مفصول بفاصلة
+              policy.WithOrigins(allowedOrigin.Split(',').Select(o => o.Trim().TrimEnd('/')).ToArray())
               .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials(); // مطلوبة لأنك تستخدم withCredentials: true
