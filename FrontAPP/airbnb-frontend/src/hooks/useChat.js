@@ -25,9 +25,12 @@ export const useChat = (conversationId) => {
     if (!conversationId || connectionRef.current) return;
 
     setConnectionState("connecting");
+    const baseUrl = import.meta.env.VITE_API_URL
+      ? import.meta.env.VITE_API_URL.replace("/api", "") // يحول الرابط من /api إلى الرابط الأساسي
+      : "https://airbnb-backend-production-7ed2.up.railway.app";
 
     const connection = new signalR.HubConnectionBuilder()
-      .withUrl("http://localhost:5000/chathub")
+      .withUrl(`${baseUrl}/chathub`)
       .withAutomaticReconnect()
       .build();
 
