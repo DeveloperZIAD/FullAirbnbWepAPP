@@ -8,6 +8,7 @@ import Loader from "@/components/shared/Loader.jsx";
 const Home = () => {
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [hasFetched, setHasFetched] = useState(false); // تم إضافة هذا المتغير للتحكم في ظهور EmptyState
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [searchParams] = useSearchParams();
@@ -48,6 +49,7 @@ const Home = () => {
       console.error("Error fetching listings:", error);
     } finally {
       setLoading(false);
+      setHasFetched(true); // تأكيد انتهاء أول عملية جلب
     }
   }, [searchParams, page]);
 
@@ -56,6 +58,7 @@ const Home = () => {
     setPage(1);
     setHasMore(true);
     setListings([]);
+    setHasFetched(false); // إعادة تعيين الحالة عند تغيير البحث
   }, [searchParams]);
 
   // 2. تشغيل الـ fetch مع مراعاة الـ Debounce للبحث فقط
@@ -73,7 +76,8 @@ const Home = () => {
     }
   }, [fetchListings]);
 
-  if (listings.length === 0 && !loading) {
+  // شرط إظهار EmptyState تم تعديله ليعتمد على hasFetched
+  if (hasFetched && listings.length === 0 && !loading) {
     return (
       <EmptyState
         showReset
