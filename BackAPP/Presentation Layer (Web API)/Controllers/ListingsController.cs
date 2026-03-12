@@ -25,7 +25,7 @@ namespace AirbnbClone.Api.Controllers
             _listingService = new ListingService();
             _authorizationService = authorizationService;
         }
-        [Authorize(Roles = UserRoles.Host)] // مسموح فقط للمضيف
+     
         // 1. إضافة عقار جديد
         [HttpPost("create")][EnableRateLimiting("fixed")]
         public IActionResult CreateListing([FromBody] SimpleListingCreateDto listingDto)
