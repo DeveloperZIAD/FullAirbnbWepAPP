@@ -2,7 +2,9 @@ import { useCallback } from "react";
 import { TbPhotoPlus, TbX } from "react-icons/tb";
 
 const ImageUpload = ({ onChange, value = [] }) => {
-  // دالة التعامل مع الرفع
+  // التأكد دائماً أن القيمة مصفوفة لتجنب الانهيار (TypeError)
+  const safeValue = Array.isArray(value) ? value : value ? [value] : [];
+
   const handleUpload = useCallback(() => {
     if (!window.cloudinary) {
       console.error("Cloudinary script not loaded");
@@ -18,27 +20,24 @@ const ImageUpload = ({ onChange, value = [] }) => {
       },
       (error, result) => {
         if (!error && result && result.event === "success") {
-          // الحل هنا: استخدم الـ functional update بدلاً من الاعتماد على value الخارجية
-          onChange((currentImages) => [
-            ...currentImages,
-            result.info.secure_url,
-          ]);
+          const newImageUrl = result.info.secure_url;
+
+          // تعديل هام: نرسل المصفوفة الجديدة كاملة للأب
+          // لأن setCustomValue في الأب لا تقبل (prev => ...)
+          onChange([...safeValue, newImageUrl]);
         }
       },
     );
 
     widget.open();
-    // قم بإزالة [onChange, value] من مصفوفة الاعتمادات وأبقِ onChange فقط
-  }, [onChange]);
+  }, [onChange, safeValue]); // أضفنا safeValue هنا لضمان تحديث الصور
 
-  // دالة لحذف صورة من المصفوفة
   const handleRemove = (urlToRemove) => {
-    onChange(value.filter((url) => url !== urlToRemove));
+    onChange(safeValue.filter((url) => url !== urlToRemove));
   };
-  const safeValue = Array.isArray(value) ? value : value ? [value] : [];
+
   return (
     <div className="space-y-4">
-      {/* منطقة الرفع */}
       <div
         onClick={handleUpload}
         className="relative cursor-pointer hover:opacity-70 transition border-dashed border-2 p-10 border-neutral-300 flex flex-col justify-center items-center gap-4 text-neutral-600 rounded-xl"
@@ -47,7 +46,6 @@ const ImageUpload = ({ onChange, value = [] }) => {
         <div className="font-semibold text-lg">Click to upload images</div>
       </div>
 
-      {/* عرض الصور المرفوعة كمعرض */}
       {safeValue.length > 0 && (
         <div className="grid grid-cols-3 gap-4 mt-4">
           {safeValue.map((url) => (
@@ -59,7 +57,10 @@ const ImageUpload = ({ onChange, value = [] }) => {
               />
               <button
                 type="button"
-                onClick={() => handleRemove(url)}
+                onClick={(e) => {
+                  e.stopPropagation(); // منع فتح نافذة الرفع عند الحذف
+                  handleRemove(url);
+                }}
                 className="absolute top-1 right-1 bg-rose-500 text-white p-1 rounded-full hover:bg-rose-600"
               >
                 <TbX size={16} />

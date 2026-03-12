@@ -21,9 +21,13 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin }) => {
   const onSubmit = useCallback(async () => {
     setIsLoading(true);
     try {
+      const imageUrl = Array.isArray(formData.imageSrc)
+        ? formData.imageSrc[0]
+        : formData.imageSrc;
+
       const dataToSubmit = {
         ...formData,
-        imageSrc: formData.imageSrc[0] || "", // نأخذ الرابط الأول من المصفوفة
+        imageSrc: imageUrl || "", // هنا نرسل النص الصافي (https://res.cloudinary.com/...)
       };
       // 1. تسجيل المستخدم في الباك اند
       const response = await authService.register(dataToSubmit);
