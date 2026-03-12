@@ -35,7 +35,7 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin }) => {
       // 2. تحضير بيانات المستخدم للحفظ (نفس التنسيق الذي يقرأه الـ Navbar)
       // نأخذ الـ id من رد السيرفر وباقي البيانات من الـ Form
       const userToSave = {
-        id: response.data?.id || response.data?.user?.id,
+        id: response.data?.UserId || response.data?.user?.id,
         fullName: formData.fullName,
         imageSrc: formData.imageSrc,
         email: formData.email,
@@ -43,6 +43,10 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin }) => {
 
       // 3. الحفظ في LocalStorage بمفتاح "user" فقط
       localStorage.setItem("user", JSON.stringify(userToSave));
+      console.log(
+        "Registration successful, user saved to storage." +
+          JSON.stringify(userToSave),
+      );
 
       // 4. إطلاق حدث مخصص لتنبيه الـ Navbar (للتحديث بدون reload)
       window.dispatchEvent(new Event("storage"));

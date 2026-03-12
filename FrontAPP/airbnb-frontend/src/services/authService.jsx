@@ -42,27 +42,15 @@ const authService = {
           localStorage.setItem("refreshToken", refreshToken);
         }
 
-        // هنا التعديل: نضمن دمج الـ ID في كائن المستخدم
-        // الباك-إند غالباً يرسل الـ ID إما داخل data.user أو كـ data.userId
-        const userId = data.userId || (data.user && data.user.id);
-
-        const userToSave = data.user || {
-          email: credentials.email,
-          fullName: data.fullName || "User",
-        };
-
-        // دمج الـ ID في كائن المستخدم المحفوظ
-        if (userId) {
-          userToSave.id = userId;
-        }
-
-        localStorage.setItem("user", JSON.stringify(userToSave));
+        // ملاحظة: إذا كان المستخدم مسجلاً بالفعل، نحدث كائن المستخدم الموجود
+        // أو نتركه كما هو إذا حفظناه مسبقاً في دالة الـ register
       }
       return response.data;
     } catch (error) {
       throw error;
     }
   },
+
   getUserperID: async (userId) => {
     try {
       const response = await api.get(`/Account/users/${userId}`);
