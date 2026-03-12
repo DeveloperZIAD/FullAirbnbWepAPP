@@ -11,7 +11,7 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin }) => {
     email: "",
     password: "",
     phoneNumber: "",
-    imageSrc: "",
+    imageSrc: [],
   });
 
   const setCustomValue = (id, value) => {
@@ -21,8 +21,12 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin }) => {
   const onSubmit = useCallback(async () => {
     setIsLoading(true);
     try {
+      const dataToSubmit = {
+        ...formData,
+        imageSrc: formData.imageSrc[0] || "", // نأخذ الرابط الأول من المصفوفة
+      };
       // 1. تسجيل المستخدم في الباك اند
-      const response = await authService.register(formData);
+      const response = await authService.register(dataToSubmit);
 
       // 2. تحضير بيانات المستخدم للحفظ (نفس التنسيق الذي يقرأه الـ Navbar)
       // نأخذ الـ id من رد السيرفر وباقي البيانات من الـ Form

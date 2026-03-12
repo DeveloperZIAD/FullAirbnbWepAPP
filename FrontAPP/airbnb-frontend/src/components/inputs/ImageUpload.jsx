@@ -35,7 +35,7 @@ const ImageUpload = ({ onChange, value = [] }) => {
   const handleRemove = (urlToRemove) => {
     onChange(value.filter((url) => url !== urlToRemove));
   };
-
+  const safeValue = Array.isArray(value) ? value : value ? [value] : [];
   return (
     <div className="space-y-4">
       {/* منطقة الرفع */}
@@ -48,9 +48,9 @@ const ImageUpload = ({ onChange, value = [] }) => {
       </div>
 
       {/* عرض الصور المرفوعة كمعرض */}
-      {value.length > 0 && (
+      {safeValue.length > 0 && (
         <div className="grid grid-cols-3 gap-4 mt-4">
-          {value.map((url) => (
+          {safeValue.map((url) => (
             <div key={url} className="relative aspect-square w-full">
               <img
                 alt="Uploaded"
