@@ -27,11 +27,10 @@ const authService = {
     }
     return response.data;
   },
-
   login: async (credentials) => {
     try {
       const response = await api.post("/Auth/login", credentials);
-      const data = response.data;
+      const data = response.data; // هنا يوجد الكائن: { token, refreshToken, user: { id, fullName, email, imageSrc } }
 
       const token = data.token || data.accessToken;
       const refreshToken = data.refreshToken;
@@ -42,15 +41,24 @@ const authService = {
           localStorage.setItem("refreshToken", refreshToken);
         }
 
-        // ملاحظة: إذا كان المستخدم مسجلاً بالفعل، نحدث كائن المستخدم الموجود
-        // أو نتركه كما هو إذا حفظناه مسبقاً في دالة الـ register
+        // حفظ كائن المستخدم القادم من الباك-إند مباشرة
+        if (data.user) {
+          const userToSave = {
+            id: data.user.id,
+            fullName: data.user.fullName,
+            email: data.user.email,
+            imageSrc: data.user.imageSrc, // التأكد من جلب الصورة أيضاً
+          };
+
+          localStorage.setItem("user", JSON.stringify(userToSave));
+          console.log("User saved during login:", userToSave);
+        }
       }
       return response.data;
     } catch (error) {
       throw error;
     }
   },
-
   getUserperID: async (userId) => {
     try {
       const response = await api.get(`/Account/users/${userId}`);

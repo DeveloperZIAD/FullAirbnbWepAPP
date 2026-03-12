@@ -39,7 +39,7 @@ const RegisterModal = ({ isOpen, onClose, onSwitchToLogin }) => {
       onClose();
 
       // اختياري: إذا أردت التأكد بنسبة 100%، اترك الـ reload مؤقتاً
-      window.location.reload();
+      // window.location.reload();
     } catch (error) {
       toast.error(error.response?.data?.message || "Registration failed");
     } finally {
