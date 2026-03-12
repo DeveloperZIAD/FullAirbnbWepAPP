@@ -121,25 +121,30 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 
 var app = builder.Build();
 
-// 1. تفعيل حماية HTTPS و HSTS (للإنتاج فقط)
+app.UseForwardedHeaders(); 
+
 if (app.Environment.IsProduction())
 {
     app.UseHsts(); 
-    app.UseForwardedHeaders(); // ضروري جداً لـ Railway
 }
 
-// 2. تفعيل الـ Middleware الأمنية المخصصة (Security Headers)
-// تأكد من إضافة: app.UseMiddleware<SecurityHeadersMiddleware>();
+// 2. تفعيل CORS قبل Routing وقبل Auth وقبل أي Middleware آخر
+// هذا يضمن أن المتصفح يحصل على إذن الوصول قبل محاولة فحص الأمان
+app.UseCors("StrictCors");
+
+// 3. تفعيل الـ Middleware الأمنية بعد CORS
 app.UseMiddleware<SecurityHeadersMiddleware>();
 
-// 3. باقي الـ Middleware بالترتيب الصحيح
-app.UseRateLimiter();
-app.UseCors("StrictCors");
+// 4. الترتيب القياسي لبقية الخدمات
 app.UseRouting();
+
+// Rate Limiter يفضل وضعه بعد الـ Routing ليعرف أي مسار يتم تقييده
+app.UseRateLimiter();
 
 app.UseAuthentication();
 app.UseAuthorization();
 
+// 5. تعريف المسارات
 app.MapControllers();
 app.MapHub<Business_Logic_Layer.Hubs.ChatHub>("/chathub");
 
