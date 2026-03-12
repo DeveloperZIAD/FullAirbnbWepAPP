@@ -5,21 +5,21 @@ const authService = {
   register: async (userData) => {
     const response = await api.post("/Account/register/guest", userData);
 
-    // إذا نجح التسجيل ورجع الباك-إند الـ userId
-    if (response.data && response.data.userId) {
-      // بناء كائن المستخدم المتكامل
+    // الباك-إند يرسل userId
+    const userId = response.data?.userId;
+
+    if (userId) {
       const userToSave = {
-        id: response.data.userId,
+        id: userId, // التزمنا بالاسم id كما طلبت
         email: userData.email,
         fullName: userData.fullName || "User",
+        imageSrc: userData.imageSrc || "",
       };
 
-      // حفظ المستخدم في localStorage مباشرة هنا
       localStorage.setItem("user", JSON.stringify(userToSave));
+      console.log("User saved to storage:", userToSave);
 
-      // console.log("Registration successful, user saved to storage.");
-
-      // ثم نقوم بتسجيل الدخول للحصول على التوكن
+      // ثم تسجيل الدخول
       return await authService.login({
         email: userData.email,
         password: userData.password,
