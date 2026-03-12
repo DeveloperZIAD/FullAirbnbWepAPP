@@ -1,22 +1,23 @@
-import { useState, useEffect } from "react";
+import React, { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Swiper, SwiperSlide } from "swiper/react";
+import { Pagination } from "swiper/modules";
 import HeartButton from "./../../components/shared/HeartButton";
+
 import "swiper/css";
+import "swiper/css/pagination";
 
 const ListingCard = ({ data }) => {
   const navigate = useNavigate();
-  const [isFavorite, setIsFavorite] = useState(false);
 
-  useEffect(() => {
-    // جلب اليوزر من الستورج للتأكد من حالة الفيفوريت
-    const userStorage = localStorage.getItem("user");
-    if (userStorage) {
+  const isFavorite = useMemo(() => {
+    try {
+      const userStorage = localStorage.getItem("user");
+      if (!userStorage) return false;
       const userData = JSON.parse(userStorage);
-      // التحقق هل الـ id الخاص بهذا العقار موجود في قائمة مفضلات اليوزر
-      // ملاحظة: تأكد أن السيرفر يرسل favoriteIds ضمن كائن اليوزر عند تسجيل الدخول
-      const favorited = userData.favoriteIds?.includes(data.id);
-      setIsFavorite(!!favorited);
+      return userData.favoriteIds?.includes(data.id) ?? false;
+    } catch {
+      return false;
     }
   }, [data.id]);
 
@@ -28,10 +29,8 @@ const ListingCard = ({ data }) => {
       <div className="flex flex-col gap-2 w-full">
         <div className="aspect-[20/19] w-full relative overflow-hidden rounded-xl bg-neutral-100">
           <Swiper
-            slidesPerView={1}
-            navigation={false}
-            pagination={false}
-            modules={[]}
+            modules={[Pagination]}
+            pagination={{ clickable: true }}
             className="h-full w-full"
           >
             {data.imageUrls
@@ -56,12 +55,12 @@ const ListingCard = ({ data }) => {
               ))}
           </Swiper>
 
-          {/* زر القلب الآن يقرأ الحالة المحسوبة محلياً */}
           <div className="absolute top-3 right-3 z-[10]">
             <HeartButton listingId={data.id} initialIsFavorite={isFavorite} />
           </div>
         </div>
 
+        {/* ... بقية الـ UI كما هي ... */}
         <div className="px-1 mt-1 flex flex-col gap-0.5">
           <div className="flex flex-row items-center justify-between">
             <div className="font-bold text-[15px] text-neutral-800 truncate">
@@ -90,4 +89,8 @@ const ListingCard = ({ data }) => {
   );
 };
 
-export default ListingCard;
+export default React.memo(ListingCard, (prev, next) => {
+  return (
+    prev.data.id === next.data.id && prev.data.basePrice === next.data.basePrice
+  );
+});

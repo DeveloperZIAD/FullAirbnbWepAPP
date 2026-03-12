@@ -74,13 +74,13 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("StrictCors", policy =>
     {
-              policy.WithOrigins(allowedOrigin.Split(',').Select(o => o.Trim().TrimEnd('/')).ToArray())
+        policy.WithOrigins(allowedOrigin.Split(',').Select(o => o.Trim().TrimEnd('/')).ToArray())
               .AllowAnyMethod()
               .AllowAnyHeader()
-              .AllowCredentials(); // مطلوبة لأنك تستخدم withCredentials: true
+              .AllowCredentials()
+              .SetPreflightMaxAge(TimeSpan.FromMinutes(15)); // <--- الحل للـ OPTIONS المزعجة
     });
 });
-
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
@@ -125,8 +125,8 @@ var app = builder.Build();
 
 // show swagger only in development
 
-    //app.UseSwagger();
-    //app.UseSwaggerUI();
+//app.UseSwagger();
+//app.UseSwaggerUI();
 
 
 app.UseForwardedHeaders(); 

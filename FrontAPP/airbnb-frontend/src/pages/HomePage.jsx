@@ -18,7 +18,6 @@ const Home = () => {
       if (loading) return;
       if (observer.current) observer.current.disconnect();
       observer.current = new IntersectionObserver((entries) => {
-        // لا نستخدم الـ observer في حالة البحث
         if (entries[0].isIntersecting && hasMore) {
           setPage((prev) => prev + 1);
         }
@@ -28,43 +27,51 @@ const Home = () => {
     [loading, hasMore],
   );
 
-  const fetchListings = async () => {
+  const fetchListings = useCallback(async () => {
     setLoading(true);
     try {
       const params = Object.fromEntries([...searchParams]);
       const isSearching = Object.keys(params).length > 0;
 
       if (isSearching) {
-        // حالة البحث: جلب الكل مباشرة
-
         const data = await listingService.searchListings(params);
         setListings(data.filter((l) => l.imageUrls?.length > 0));
-        setHasMore(false); // البحث لا يحتاج تحميل مستمر
+        setHasMore(false);
       } else {
-        // حالة التصفح: ترقيم 10 بـ 10
         const data = await listingService.getListingsPaged(page, 10);
-        if (data.length === 0) {
+        if (data.length < 10) {
           setHasMore(false);
-        } else {
-          setListings((prev) => (page === 1 ? data : [...prev, ...data]));
         }
+        setListings((prev) => (page === 1 ? data : [...prev, ...data]));
       }
     } catch (error) {
-      console.error(error);
+      console.error("Error fetching listings:", error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchParams, page]);
 
-  // إعادة التعيين عند تغيير البحث
+  // 1. إعادة التعيين عند تغيير الفلاتر
   useEffect(() => {
     setPage(1);
+    setHasMore(true);
     setListings([]);
   }, [searchParams]);
 
+  // 2. تشغيل الـ fetch مع مراعاة الـ Debounce للبحث فقط
   useEffect(() => {
-    fetchListings();
-  }, [page, searchParams]);
+    const isSearching =
+      Object.keys(Object.fromEntries([...searchParams])).length > 0;
+
+    if (isSearching) {
+      const handler = setTimeout(() => {
+        fetchListings();
+      }, 300);
+      return () => clearTimeout(handler);
+    } else {
+      fetchListings();
+    }
+  }, [fetchListings]);
 
   if (listings.length === 0 && !loading) {
     return (
@@ -77,7 +84,6 @@ const Home = () => {
   }
 
   return (
-    // إضافة الـ Padding والتنسيق الأصلي
     <div className="w-full px-4 md:px-10 lg:px-16 mx-auto mb-10 pt-24">
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
         {listings.map((listing, index) => {
@@ -91,7 +97,11 @@ const Home = () => {
           return <ListingCard key={listing.id} data={listing} />;
         })}
       </div>
-      {loading && <Loader />}
+      {loading && (
+        <div className="mt-10">
+          <Loader />
+        </div>
+      )}
     </div>
   );
 };

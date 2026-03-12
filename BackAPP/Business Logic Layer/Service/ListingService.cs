@@ -294,25 +294,100 @@ namespace Business_Logic_Layer.Services
                 return new RegistrationResult { IsSuccess = false, Message = ex.InnerException?.Message ?? ex.Message };
             }
         }
+
+        //public IEnumerable<ListingCreateDto> SearchListings(ListingSearchParams searchParams)
+        //{
+        //    // 1. جلب العقارات مع كل الجداول المرتبطة (Location, Category, Host, Images)
+        //    // نستخدم Include لضمان عدم حدوث N+1 query problem
+        //    var query = _unitOfWork.Listings.GetAll(
+        //        l => l.Location,
+        //        l => l.Category,
+        //        l => l.Host,
+        //        l => l.Images // بفرض أن جدول الصور اسمه Images
+        //    ).Where(l => l.Status == "Published" && !l.IsDeleted);
+
+        //    // 2. فلترة حسب المكان (البحث في جدول Location المرتبط)
+        //    // 2. فلترة حسب المكان مع حماية من الـ Null
+        //    if (!string.IsNullOrEmpty(searchParams.Location))
+        //    {
+        //        query = query.Where(l => l.Location != null && (
+        //                                 l.Location.City.Contains(searchParams.Location) ||
+        //                                 l.Location.StreetAddress.Contains(searchParams.Location) ||
+        //                                 l.Location.CountryCode.Contains(searchParams.Location)));
+        //    }
+
+        //    // 3. فلترة حسب التصنيف
+        //    if (!string.IsNullOrEmpty(searchParams.Category))
+        //    {
+        //        query = query.Where(l => l.Category.Name == searchParams.Category);
+        //    }
+
+        //    // 4. فلترة حسب السعر
+        //    if (searchParams.MinPrice.HasValue)
+        //        query = query.Where(l => l.BasePrice >= searchParams.MinPrice.Value);
+
+        //    if (searchParams.MaxPrice.HasValue)
+        //        query = query.Where(l => l.BasePrice <= searchParams.MaxPrice.Value);
+
+        //    // 5. فلترة التواريخ (استبعاد العقارات التي لديها حجز متداخل)
+        //    if (searchParams.CheckIn.HasValue && searchParams.CheckOut.HasValue)
+        //    {
+        //        var reservedListingIds = _unitOfWork.Bookings.GetAll()
+        //            .Where(b => (searchParams.CheckIn < b.CheckOut && searchParams.CheckOut > b.CheckIn))
+        //            .Select(b => b.ListingId)
+        //            .ToList();
+
+        //        query = query.Where(l => !reservedListingIds.Contains(l.Id));
+        //    }
+
+        //    // 6. التحويل إلى DTO مع جلب بيانات الهوست من جدول المستخدمين
+        //    return query.Select(l =>
+        //    {
+        //        // جلب بيانات المستخدم (FullName) المرتبط بالهوست
+        //        // ملاحظة: إذا كان Host يملك علاقة Navigation مع User، استخدم l.Host.User.FullName
+        //        var hostUser = _unitOfWork.Users.GetById(l.Host.UserId);
+
+        //        return new ListingCreateDto
+        //        {
+        //            Id = l.Id,
+        //            Title = l.Title,
+        //            Description = l.Description,
+        //            BasePrice = l.BasePrice,
+        //            HostId = l.HostId,
+        //            HostName = l.Host.User.FullName,
+        //            // إضافة حقل جديد في الـ DTO أو استخدامه إذا كان موجوداً لعرض اسم المضيف
+        //            CategoryName = l.Category?.Name ?? "General",
+        //            CategoryId = l.CategoryId,
+
+        //            // بيانات الموقع من جدول Location
+        //            City = l.Location?.City ?? "N/A",
+        //            CountryCode = l.Location?.CountryCode ?? "N/A",
+        //            StreetAddress = l.Location?.StreetAddress ?? "N/A",
+
+        //            // جلب روابط الصور من جدول الصور المرتبط
+        //            ImageUrls = l.Images.Select(img => img.Url).ToList()
+        //        };
+        //    }).ToList();
+        //}
+
         public IEnumerable<ListingCreateDto> SearchListings(ListingSearchParams searchParams)
         {
-            // 1. جلب العقارات مع كل الجداول المرتبطة (Location, Category, Host, Images)
-            // نستخدم Include لضمان عدم حدوث N+1 query problem
-            var query = _unitOfWork.Listings.GetAll(
+            // 1. جلب البيانات باستخدام Include لكل الجداول المطلوبة بما فيها Host.User
+            // هذا يضمن أن البيانات تأتي في استعلام SQL واحد (JOIN)
+            var query = _unitOfWork.Listings.GetQueryable(
                 l => l.Location,
                 l => l.Category,
-                l => l.Host,
-                l => l.Images // بفرض أن جدول الصور اسمه Images
+                l => l.Host.User,  // جلب بيانات المستخدم المرتبط بالمضيف هنا
+                l => l.Images
             ).Where(l => l.Status == "Published" && !l.IsDeleted);
 
-            // 2. فلترة حسب المكان (البحث في جدول Location المرتبط)
-            // 2. فلترة حسب المكان مع حماية من الـ Null
+            // 2. فلترة حسب المكان
             if (!string.IsNullOrEmpty(searchParams.Location))
             {
                 query = query.Where(l => l.Location != null && (
-                                         l.Location.City.Contains(searchParams.Location) ||
-                                         l.Location.StreetAddress.Contains(searchParams.Location) ||
-                                         l.Location.CountryCode.Contains(searchParams.Location)));
+                    l.Location.City.Contains(searchParams.Location) ||
+                    l.Location.StreetAddress.Contains(searchParams.Location) ||
+                    l.Location.CountryCode.Contains(searchParams.Location)));
             }
 
             // 3. فلترة حسب التصنيف
@@ -328,46 +403,35 @@ namespace Business_Logic_Layer.Services
             if (searchParams.MaxPrice.HasValue)
                 query = query.Where(l => l.BasePrice <= searchParams.MaxPrice.Value);
 
-            // 5. فلترة التواريخ (استبعاد العقارات التي لديها حجز متداخل)
+            // 5. فلترة التواريخ (تم تحويلها لـ IQueryable لتنفيذها داخل الـ SQL)
             if (searchParams.CheckIn.HasValue && searchParams.CheckOut.HasValue)
             {
-                var reservedListingIds = _unitOfWork.Bookings.GetAll()
+                var reservedListingIds = _unitOfWork.Bookings.GetQueryable()
                     .Where(b => (searchParams.CheckIn < b.CheckOut && searchParams.CheckOut > b.CheckIn))
-                    .Select(b => b.ListingId)
-                    .ToList();
+                    .Select(b => b.ListingId); // بدون .ToList() لتبقى داخل الـ Query
 
                 query = query.Where(l => !reservedListingIds.Contains(l.Id));
             }
 
-            // 6. التحويل إلى DTO مع جلب بيانات الهوست من جدول المستخدمين
-            return query.Select(l =>
+            // 6. التحويل إلى DTO (الآن كل البيانات جاهزة في الذاكرة بفضل الـ Includes)
+            return query.Select(l => new ListingCreateDto
             {
-                // جلب بيانات المستخدم (FullName) المرتبط بالهوست
-                // ملاحظة: إذا كان Host يملك علاقة Navigation مع User، استخدم l.Host.User.FullName
-                var hostUser = _unitOfWork.Users.GetById(l.Host.UserId);
-
-                return new ListingCreateDto
-                {
-                    Id = l.Id,
-                    Title = l.Title,
-                    Description = l.Description,
-                    BasePrice = l.BasePrice,
-                    HostId = l.HostId,
-                    HostName = l.Host.User.FullName,
-                    // إضافة حقل جديد في الـ DTO أو استخدامه إذا كان موجوداً لعرض اسم المضيف
-                    CategoryName = l.Category?.Name ?? "General",
-                    CategoryId = l.CategoryId,
-
-                    // بيانات الموقع من جدول Location
-                    City = l.Location?.City ?? "N/A",
-                    CountryCode = l.Location?.CountryCode ?? "N/A",
-                    StreetAddress = l.Location?.StreetAddress ?? "N/A",
-
-                    // جلب روابط الصور من جدول الصور المرتبط
-                    ImageUrls = l.Images.Select(img => img.Url).ToList()
-                };
+                Id = l.Id,
+                Title = l.Title,
+                Description = l.Description,
+                BasePrice = l.BasePrice,
+                HostId = l.HostId,
+                // الوصول المباشر للبيانات بدون طلبات SQL إضافية
+                HostName = l.Host.User != null ? l.Host.User.FullName : "Unknown",
+                CategoryName = l.Category != null ? l.Category.Name : "General",
+                CategoryId = l.CategoryId,
+                City = l.Location != null ? l.Location.City : "N/A",
+                CountryCode = l.Location != null ? l.Location.CountryCode : "N/A",
+                StreetAddress = l.Location != null ? l.Location.StreetAddress : "N/A",
+                ImageUrls = l.Images.Select(img => img.Url).ToList()
             }).ToList();
         }
+
         public IEnumerable<ListingCreateDto> GetAllListings()
         {
             var listings = _unitOfWork.Listings.GetAll(
