@@ -30,6 +30,8 @@ Experience the system orchestration, real-time data consistency, and streamlined
 
 [▶️ Click here to Go To The Platform ](https://front-production-951a.up.railway.app/)
 
+[Watch demo video](https://drive.google.com/file/d/1HmEvOylzlZXTgfMRScKm-CxcdCnKbbQI/view?usp=sharing)
+
 ---
 
 ## ⚡ Performance Engineering & Technical Highlights
