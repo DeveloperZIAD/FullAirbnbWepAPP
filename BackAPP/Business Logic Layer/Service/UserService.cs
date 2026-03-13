@@ -168,31 +168,31 @@ namespace Business_Logic_Layer.Services
             };
         }
 
-        public void MigratePasswords()
-        {
-            // 1. جلب المستخدمين الذين لديهم كلمة المرور P@ssword123 تحديداً
-            // هذا سيجعل العملية أسرع بكثير
-            var usersToMigrate = _unitOfWork.Users.GetAll()
-                .Where(u => u.Password == "P@ssword123");
+        //public void MigratePasswords()
+        //{
+        //    // 1. جلب المستخدمين الذين لديهم كلمة المرور P@ssword123 تحديداً
+        //    // هذا سيجعل العملية أسرع بكثير
+        //    var usersToMigrate = _unitOfWork.Users.GetAll()
+        //        .Where(u => u.Password == "P@ssword123");
 
-            int count = 0;
-            foreach (var user in usersToMigrate)
-            {
-                // 2. التشفير
-                string hashed = PasswordHelper.HashPassword("P@ssword123");
+        //    int count = 0;
+        //    foreach (var user in usersToMigrate)
+        //    {
+        //        // 2. التشفير
+        //        string hashed = PasswordHelper.HashPassword("P@ssword123");
 
-                // 3. التحديث
-                user.Password = hashed;
-                _unitOfWork.Users.Update(user);
+        //        // 3. التحديث
+        //        user.Password = hashed;
+        //        _unitOfWork.Users.Update(user);
 
-                count++;
-                // طباعة في الـ Output window لمعرفة التقدم
-                System.Diagnostics.Debug.WriteLine($"Migrated user {user.Id}: {count} users processed.");
-            }
+        //        count++;
+        //        // طباعة في الـ Output window لمعرفة التقدم
+        //        System.Diagnostics.Debug.WriteLine($"Migrated user {user.Id}: {count} users processed.");
+        //    }
 
-            // 4. الحفظ مرة واحدة فقط خارج الحلقة
-            _unitOfWork.Complete();
-            System.Diagnostics.Debug.WriteLine("Migration Finished successfully!");
-        }
+        //    // 4. الحفظ مرة واحدة فقط خارج الحلقة
+        //    _unitOfWork.Complete();
+        //    System.Diagnostics.Debug.WriteLine("Migration Finished successfully!");
+        //}
     }
 }

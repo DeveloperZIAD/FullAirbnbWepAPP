@@ -170,19 +170,19 @@ namespace AirbnbClone.Api.Controllers
         }
 
 
-        [HttpPost("migrate-passwords")]
-        [AllowAnonymous]
-        public IActionResult RunPasswordMigration()
-        {
-            try
-            {
-                _userService.MigratePasswords();
-                return Ok(new { Message = "Passwords migrated successfully to BCrypt Hash!" });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { Message = "Migration failed: " + ex.Message });
-            }
-        }
+        //[HttpPost("migrate-passwords")]
+        //[AllowAnonymous]
+        //public IActionResult RunPasswordMigration()
+        //{
+        //    try
+        //    {
+        //        _userService.MigratePasswords();
+        //        return Ok(new { Message = "Passwords migrated successfully to BCrypt Hash!" });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return BadRequest(new { Message = "Migration failed: " + ex.Message });
+        //    }
+        //}
     }
 }

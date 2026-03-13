@@ -125,8 +125,8 @@ var app = builder.Build();
 
 // show swagger only in development
 
-app.UseSwagger();
-app.UseSwaggerUI();
+//app.UseSwagger();
+//app.UseSwaggerUI();
 
 
 app.UseForwardedHeaders(); 
