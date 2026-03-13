@@ -10,5 +10,7 @@ namespace Business_Logic_Layer.Interfaces
         RegistrationResult RegisterUser(UserRegisterDto dto); 
         IEnumerable<UserRegisterDto> GetAllUsers();
         UserProfileDto GetUserById(Guid id);
+        //void MigratePasswords();
+
     }
 }

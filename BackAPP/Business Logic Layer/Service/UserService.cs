@@ -4,6 +4,7 @@ using Business_Logic_Layer.Interfaces;
 using Business_Logic_Layer.Service.util;
 using Data_Access_Layer.Entities;
 using Data_Access_Layer.Repositories;
+
 namespace Business_Logic_Layer.Services
 {
     public class UserService : IUserService
@@ -166,5 +167,32 @@ namespace Business_Logic_Layer.Services
                 AvatarUrl = user.AvatarUrl // لو متاح عندك في الموديل
             };
         }
+
+        public void MigratePasswords()
+        {
+            // 1. جلب المستخدمين الذين لديهم كلمة المرور P@ssword123 تحديداً
+            // هذا سيجعل العملية أسرع بكثير
+            var usersToMigrate = _unitOfWork.Users.GetAll()
+                .Where(u => u.Password == "P@ssword123");
+
+            int count = 0;
+            foreach (var user in usersToMigrate)
+            {
+                // 2. التشفير
+                string hashed = PasswordHelper.HashPassword("P@ssword123");
+
+                // 3. التحديث
+                user.Password = hashed;
+                _unitOfWork.Users.Update(user);
+
+                count++;
+                // طباعة في الـ Output window لمعرفة التقدم
+                System.Diagnostics.Debug.WriteLine($"Migrated user {user.Id}: {count} users processed.");
+            }
+
+            // 4. الحفظ مرة واحدة فقط خارج الحلقة
+            _unitOfWork.Complete();
+            System.Diagnostics.Debug.WriteLine("Migration Finished successfully!");
+        }
     }
-}//d51d7d4c-c537-448a-8604-4679264f36a0
+}

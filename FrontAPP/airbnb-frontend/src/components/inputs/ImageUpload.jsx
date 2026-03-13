@@ -1,15 +1,17 @@
-import { useCallback } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { TbPhotoPlus, TbX } from "react-icons/tb";
 
 const ImageUpload = ({ onChange, value = [] }) => {
-  // التأكد دائماً أن القيمة مصفوفة لتجنب الانهيار (TypeError)
-  const safeValue = Array.isArray(value) ? value : value ? [value] : [];
+  // حالة داخلية لإدارة الصور محلياً
+  const [internalValue, setInternalValue] = useState(value);
+
+  // تحديث الحالة الداخلية إذا تغيرت الـ value من الأب
+  useEffect(() => {
+    setInternalValue(Array.isArray(value) ? value : []);
+  }, [value]);
 
   const handleUpload = useCallback(() => {
-    if (!window.cloudinary) {
-      console.error("Cloudinary script not loaded");
-      return;
-    }
+    if (!window.cloudinary) return;
 
     const widget = window.cloudinary.createUploadWidget(
       {
@@ -20,20 +22,25 @@ const ImageUpload = ({ onChange, value = [] }) => {
       },
       (error, result) => {
         if (!error && result && result.event === "success") {
-          const newImageUrl = result.info.secure_url;
+          const newUrl = result.info.secure_url;
 
-          // تعديل هام: نرسل المصفوفة الجديدة كاملة للأب
-          // لأن setCustomValue في الأب لا تقبل (prev => ...)
-          onChange([...safeValue, newImageUrl]);
+          setInternalValue((prev) => {
+            if (prev.includes(newUrl)) return prev;
+            const updated = [...prev, newUrl];
+            onChange(updated); // إرسال المصفوفة كاملة للأب
+            return updated;
+          });
         }
       },
     );
 
     widget.open();
-  }, [onChange, safeValue]); // أضفنا safeValue هنا لضمان تحديث الصور
+  }, [onChange]);
 
   const handleRemove = (urlToRemove) => {
-    onChange(safeValue.filter((url) => url !== urlToRemove));
+    const updated = internalValue.filter((url) => url !== urlToRemove);
+    setInternalValue(updated);
+    onChange(updated);
   };
 
   return (
@@ -46,9 +53,10 @@ const ImageUpload = ({ onChange, value = [] }) => {
         <div className="font-semibold text-lg">Click to upload images</div>
       </div>
 
-      {safeValue.length > 0 && (
+      {/* هنا تم استبدال safeValue بـ internalValue */}
+      {internalValue.length > 0 && (
         <div className="grid grid-cols-3 gap-4 mt-4">
-          {safeValue.map((url) => (
+          {internalValue.map((url) => (
             <div key={url} className="relative aspect-square w-full">
               <img
                 alt="Uploaded"
@@ -58,7 +66,7 @@ const ImageUpload = ({ onChange, value = [] }) => {
               <button
                 type="button"
                 onClick={(e) => {
-                  e.stopPropagation(); // منع فتح نافذة الرفع عند الحذف
+                  e.stopPropagation();
                   handleRemove(url);
                 }}
                 className="absolute top-1 right-1 bg-rose-500 text-white p-1 rounded-full hover:bg-rose-600"
