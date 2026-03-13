@@ -4,6 +4,24 @@
 
 A high-performance rental marketplace platform architected for mission-critical stability and massive concurrency. Engineered to handle high-throughput booking operations with sub-second latency, this platform demonstrates expertise in building resilient, distributed systems capable of scaling horizontally in production environments.
 
+<div align="center">
+
+![.NET 8](https://img.shields.io/badge/.NET-8.0-512bd4?style=for-the-badge&logo=dotnet)
+![React](https://img.shields.io/badge/React-18-61dafb?style=for-the-badge&logo=react)
+![Redux](https://img.shields.io/badge/Redux-764ABC?style=for-the-badge&logo=redux)
+![Tailwind](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css)
+
+![Docker](https://img.shields.io/badge/Docker-2496ed?style=for-the-badge&logo=docker)
+![Nginx](https://img.shields.io/badge/Nginx-009639?style=for-the-badge&logo=nginx)
+![CI/CD](https://img.shields.io/badge/CI%2FCD-GitHub_Actions-2088FF?style=for-the-badge&logo=github-actions)
+![SQL Server](https://img.shields.io/badge/MS_SQL_Server-CC2927?style=for-the-badge&logo=microsoft-sql-server)
+
+![Architecture](https://img.shields.io/badge/Architecture-Clean_&_DDD-green?style=for-the-badge)
+![Security](https://img.shields.io/badge/Security-JWT_&_RBAC-red?style=for-the-badge)
+![Status](https://img.shields.io/badge/Status-Production_Ready-brightgreen?style=for-the-badge)
+
+</div>
+
 ---
 
 ## 📺 Technical Walkthrough & Live Demo
