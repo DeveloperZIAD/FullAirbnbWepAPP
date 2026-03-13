@@ -10,7 +10,7 @@ A high-performance rental marketplace platform architected for mission-critical 
 
 Experience the system orchestration, real-time data consistency, and streamlined checkout pipeline in the detailed platform demo:
 
-[▶️ Click here to watch the Platform ](https://front-production-951a.up.railway.app/)
+[▶️ Click here to Go To The Platform ](https://front-production-951a.up.railway.app/)
 
 ---
 
